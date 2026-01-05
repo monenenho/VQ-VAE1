@@ -1,0 +1,9 @@
+# ハイパーパラメータ設定
+batch_size: 128
+num_embeddings: 64
+embedding_dim: 16
+commitment_cost: 0.25
+learning_rate: 0.001
+num_epochs: 10
+results_dir: results
+save_path: vqvae_mnist.pth
