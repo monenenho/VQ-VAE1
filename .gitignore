@@ -1,0 +1,7 @@
+# Python
+__pycache__/
+*.pyc
+
+# Training artifacts
+vqvae_mnist.pth
+data/
