@@ -100,6 +100,7 @@ def main():
     optimizer = torch.optim.Adam(model.parameters(), lr=config["learning_rate"])
     # 学習
     model.train()
+    epoch_losses = []  # 各エポックの損失を記録
     for epoch in range(config["num_epochs"]):
         total_loss = 0.0
         for batch_idx, (data, _) in enumerate(train_loader):
@@ -113,7 +114,21 @@ def main():
             total_loss += float(loss.item())
             if (batch_idx + 1) % 50 == 0:
                 log(f"  Epoch {epoch+1}/{config['num_epochs']} | batch {batch_idx+1}/{len(train_loader)} | loss {loss.item():.4f}")
-        log(f"Epoch [{epoch+1}/{config['num_epochs']}], Loss: {total_loss/len(train_loader):.4f}")
+        avg_loss = total_loss / len(train_loader)
+        epoch_losses.append(avg_loss)
+        log(f"Epoch [{epoch+1}/{config['num_epochs']}], Loss: {avg_loss:.4f}")
+
+    # 損失グラフの保存
+    plt.figure()
+    plt.plot(range(1, len(epoch_losses)+1), epoch_losses, marker='o')
+    plt.xlabel('Epoch')
+    plt.ylabel('Loss')
+    plt.title('Training Loss')
+    plt.grid(True)
+    loss_plot_path = results_dir / 'loss_curve.png'
+    plt.savefig(loss_plot_path, dpi=200)
+    plt.close()
+    log(f"[OK] Loss curve saved -> {loss_plot_path.resolve()}")
     # 保存
     torch.save(model.state_dict(), config["save_path"])
     log(f"[OK] Model saved -> {Path(config['save_path']).resolve()}")
