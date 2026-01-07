@@ -1,3 +1,4 @@
+import torch
 import torch.nn as nn
 from .encoder import Encoder
 from .decoder import Decoder
@@ -17,8 +18,27 @@ class VQVAE(nn.Module):
         self.vq_layer = VectorQuantizer(num_embeddings, embedding_dim, commitment_cost)
         self.decoder = Decoder(embedding_dim, num_hiddens, in_channels)
 
-    def forward(self, x):
-        z = self.encoder(x)
+    def forward(self, x, return_z: bool = False):
+        z = self.encoder(x)  # pre-quant (continuous)
         vq_loss, quantized, indices = self.vq_layer(z)
         x_recon = self.decoder(quantized)
+        if return_z:
+            return vq_loss, x_recon, indices, z
         return vq_loss, x_recon, indices
+
+    @torch.no_grad()
+    def encode(self, x):
+        return self.encoder(x)
+
+    @torch.no_grad()
+    def decode(self, z, quantize: bool = True):
+        if quantize:
+            _, q, _ = self.vq_layer(z)
+            return self.decoder(q)
+        return self.decoder(z)
+
+    @torch.no_grad()
+    def reconstruct(self, x):
+        z = self.encoder(x)
+        _, q, _ = self.vq_layer(z)
+        return self.decoder(q)
